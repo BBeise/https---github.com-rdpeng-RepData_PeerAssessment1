@@ -15,20 +15,21 @@ In this report we aim to explore the NOAA Storm Database and answer questions ab
 ###Loading and Processing the Raw Data
 
 From the NCDC we obtained the files for the years 1950 through November 2011.
-
-###Reading in the data
-
-Having downloaded the data as a compressed csv file, we read it in its entirety into a local file, and check that the file is formatted as a data frame.
-```{r read and refine the data}
+```{r get data,echo=FALSE}
 ## Getting the Data
 fileUrl<-"https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
 download.file(fileUrl,destfile="weather.csv",method="curl")
+```
+###Reading in the data
+
+Having downloaded the data as a compressed csv file, we read it in its entirety into a local file, and check that the file is formatted as a data frame.
+```{r read and refine the data,echo=FALSE}
 weather <- read.csv("weather.csv",header=TRUE)
 # load useful packages
 library(data.table)
 library(dplyr)
 library(lubridate)
-head(weather[,1:13])
+head(weather)
 ```
 Using summary analysis, we check to see whether key health or damage information is missing (i.e. coded as NA).
 ```{r summary na}
