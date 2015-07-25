@@ -1,0 +1,80 @@
+---
+title: "Peer Assessment 2"
+author: "Beise"
+date: "July 26, 2015"
+output: html_document
+---
+##Storm Event Impact Analysis in United States
+
+###Synopsis
+
+In this report we aim to explore the NOAA Storm Database and answer questions about the health and quantifiable damage impacts of recorded weather events. Our results should be useful to public officials preparing readiness, emergency response programs in their jurisdictions, as well as preparing response budgets.  To investigate these areas, we obtained storm event data from the National Climatic Data Storm Center (NCDC). Our summary findings indicate that the top [five] weather events across the United States producing significant health impacts, measured as fatalities and injuries, are the following: [Tornados, Hurricanes, ]. Furthermore, the most significant economic consequences, measured as crop and property damage, are due to [Tornados, Hurricanes].
+
+
+
+###Loading and Processing the Raw Data
+
+From the NCDC we obtained the files for the years 1950 through November 2011.
+
+###Reading in the data
+
+Having downloaded the data as a compressed csv file, we read it in its entirety into a local file, and check that the file is formatted as a data frame.
+```{r read and refine the data}
+## Getting the Data
+fileUrl<-"https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
+download.file(fileUrl,destfile="weather.csv",method="curl")
+weather <- read.csv("weather.csv",header=TRUE)
+# load useful packages
+library(data.table)
+library(dplyr)
+library(lubridate)
+head(weather[,1:13])
+```
+Using summary analysis, we check to see whether key health or damage information is missing (i.e. coded as NA).
+```{r summary na}
+summary(weather[,c("EVTYPE","FATALITIES","INJURIES","PROPDMG","CROPDMG")])
+```
+Because none of the key variables include missing values, missing values are not a problem in this analysis.
+We then reduce the file to the relevant variables for the analysis
+```{r file reduce}
+#pare down the file to the relevant variables
+weatherdat<-weather[,c("BGN_DATE","STATE","EVTYPE","FATALITIES","INJURIES","PROPDMG","CROPDMG","REFNUM")]
+attach(weatherdat)
+weatherdat$health<-FATALITIES+INJURIES
+weatherdat$damage<-PROPDMG+CROPDMG
+weatherdat$eventdate<-as.character(weatherdat$BGN_DATE)
+```
+To perform the analysis on health impacts, we create a subset of the weather data that generates the relevant statistics and finds the one event that is most health-impacting.
+```{r health impacts}
+#create table of health impacts by type
+badhealth<-group_by(weatherdat,EVTYPE)
+badhealth<-summarise(badhealth,healthsum=sum(health))
+#find the event with the maximum health impact
+maxhealth<-subset(badhealth,healthsum==max(healthsum),select=c(EVTYPE,healthsum))
+maxhealth
+```
+Next we assess the storm events for the most economic impacts by type.
+``` {r economic impacts}
+#create table of damages by type
+losses<-group_by(weatherdat,EVTYPE)
+losses<-summarise(losses,damagesum=sum(damage))
+#find the event with the maximum economic impact
+maxloss<-subset(losses,damagesum==max(damagesum),select=c(EVTYPE,damagesum))
+maxloss
+```
+##Results
+
+###Health Impacts
+
+In order to show the top tier health-impacting type of storm events, we create a plot.
+
+```{r health results,echo=FALSE}
+
+
+```
+###Economic Impacts
+
+We create a similar plot showing the top tier of events causing the most significant damages across the US.
+```{r economic results, echo=FALSE}
+
+```
