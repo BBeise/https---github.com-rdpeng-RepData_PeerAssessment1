@@ -12,25 +12,25 @@ In this report we aim to explore the NOAA Storm Database and answer questions ab
 
 
 
-###Loading and Processing the Raw Data
+###Data Processing
+####Loading the Data
 
 From the NCDC we obtained the files for the years 1950 through November 2011.
-```{r get data,echo=FALSE}
+```{r get data,results="hide"}
 ## Getting the Data
 fileUrl<-"https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
 download.file(fileUrl,destfile="weather.csv",method="curl")
 ```
-###Reading in the data
+####Reading in the data
 
 Having downloaded the data as a compressed csv file, we read it in its entirety into a local file, and check that the file is formatted as a data frame.
-```{r read and refine the data,echo=FALSE}
+```{r read and refine the data,results="hide"}
 weather <- read.csv("weather.csv",header=TRUE)
 # load useful packages
-library(data.table)
 library(dplyr)
-library(lubridate)
-head(weather)
 ```
+###Data Analysis
+##Data Inspection & Transformation
 Using summary analysis, we check to see whether key health or damage information is missing (i.e. coded as NA).
 ```{r summary na}
 summary(weather[,c("EVTYPE","FATALITIES","INJURIES","PROPDMG","CROPDMG")])
@@ -43,39 +43,70 @@ weatherdat<-weather[,c("BGN_DATE","STATE","EVTYPE","FATALITIES","INJURIES","PROP
 attach(weatherdat)
 weatherdat$health<-FATALITIES+INJURIES
 weatherdat$damage<-PROPDMG+CROPDMG
-weatherdat$eventdate<-as.character(weatherdat$BGN_DATE)
 ```
-To perform the analysis on health impacts, we create a subset of the weather data that generates the relevant statistics and finds the one event that is most health-impacting.
+####Identifying Health Impacts
+
+To perform the analysis on health impacts, we create a subset of the weather data that generates the relevant statistics.
 ```{r health impacts}
 #create table of health impacts by type
 badhealth<-group_by(weatherdat,EVTYPE)
 badhealth<-summarise(badhealth,healthsum=sum(health))
-#find the event with the maximum health impact
-maxhealth<-subset(badhealth,healthsum==max(healthsum),select=c(EVTYPE,healthsum))
-maxhealth
+#create table of health impacts by type
+badhealth<-group_by(weatherdat,EVTYPE)
+badhealth<-summarise(badhealth,healthsum=sum(health))
+qbadhealth<-quantile(badhealth$healthsum,seq(0,1,by=0.01))
+badhealth$impgroups<-cut(badhealth$healthsum,unique(qbadhealth),include.lowest=TRUE)
 ```
-Next we assess the storm events for the most economic impacts by type.
+Next we plot the grouped dataset to see the distribution of health impacts
+```{r distribution,fig.height=4,echo=FALSE}
+hist(log(badhealth$healthsum),main="Distribution of Health Impact Size by Event Type")
+```
+
+As we can see from the above, very few event types generate the largest proportion of fatilities and injuries.  
+
+Next we identify the top ten event types that can be considered most costly. We generate the table to identify the number of impact groups.
+
+``` {r find htop ten}
+table(badhealth$impgroups)
+hlevels<-levels(badhealth$impgroups)
+topten<-filter(badhealth,badhealth$impgroups==hlevels[16])
+```
+####Identifying Economic Impacts
+
+To perform the analysis on event economic impacts, we create a subset of the weather data that generates the relevant statistics.
 ``` {r economic impacts}
-#create table of damages by type
-losses<-group_by(weatherdat,EVTYPE)
-losses<-summarise(losses,damagesum=sum(damage))
-#find the event with the maximum economic impact
-maxloss<-subset(losses,damagesum==max(damagesum),select=c(EVTYPE,damagesum))
-maxloss
+bigdamages<-group_by(weatherdat,EVTYPE)
+bigdamages<-summarise(bigdamages,damagesum=sum(damage))
+qdamages<-quantile(bigdamages$damagesum,seq(0,1,by=0.01))
+bigdamages$impgroups<-cut(bigdamages$damagesum,unique(qdamages),include.lowest=TRUE)
 ```
+Next we plot the grouped dataset to see the distribution of economic impacts.
+``` {r plot economic impact distribution,fig.height=4}
+hist(log(bigdamages$damagesum))
+```
+
+As with the health impacts, a relatively few event types generate the largest damages.
+
+Next we identify the top ten event types and their total crop and property damages. We first generate a table of the impact groupings to isolate the top ten.
+``` {r find etop ten}
+table(bigdamages$impgroups)
+hlevels<-levels(bigdamages$impgroups)
+dtopten<-filter(bigdamages,bigdamages$impgroups==hlevels[36])
+```
+
 ##Results
 
 ###Health Impacts
 
-In order to show the top tier health-impacting type of storm events, we create a plot.
+The top ten events generating the majority of fatalities and injuries are as follows in the table below.  It is clear that Tornados trump all other weather events for impacts on life and limb.
 
-```{r health results,echo=FALSE}
-
-
+```{r health results}
+topten[,1:2]
 ```
 ###Economic Impacts
 
-We create a similar plot showing the top tier of events causing the most significant damages across the US.
-```{r economic results, echo=FALSE}
+Results for the economic impact analysis are similar, although tornados do not skew as highly as they do for the health impacts.
 
+```{r economic results}
+dtopten[,1:2]
 ```
