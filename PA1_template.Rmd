@@ -9,23 +9,30 @@ download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.z
 activity <- read.csv(unz(temp, "activity.csv"),header=TRUE)
 unlink(temp)
 ```
+
 ##Load useful packages
+
 ```{r load packages,echo=TRUE,results="hide"}
 library(data.table)
 library(dplyr)
+library(knitr)
 ```
+
 ##Q1: What is the average number of steps taken per day?
+
 ```{r first problem, echo=TRUE}
 totalsteps<-group_by(activity,date)
 dailysum<-summarise(totalsteps,dailysteps=sum(steps),dailymean=mean(steps),dailymedian=median(steps))
 meansteps<-as.integer(mean(dailysum$dailysteps,na.rm=TRUE))
 mediansteps<-median(dailysum$dailysteps,na.rm=TRUE)
 ```
+
 The mean of the total number of steps per day is `r meansteps`.
 
 The median of the total number of steps per day is `r mediansteps`.
 
 The histogram of the total number of steps taken each day:
+
 ```{r histogram,echo=FALSE,fig.height=4}
 hist(dailysum$dailysteps,breaks=20,main="Frequency of Total Steps Per Day",xlab="total steps")
 #hist(dailysum$dailysteps,freq=FALSE,breaks=50,xlim=c(0,22000),main="Density of Total Daily Steps",xlab="Total Daily Steps")
@@ -47,7 +54,9 @@ intervalsum<-summarise(dailyint,intervalsteps=sum(steps,na.rm=TRUE),intervalmean
 maxinterval<-subset(intervalsum,intervalsteps==max(intervalsteps),select=c(interval,intervalsteps))
 maxnum<-maxinterval[1,1]
 ```
+
 The time series showing the average steps by time interval:
+
 ```{r,echo=FALSE}
 plot(intervalsum$interval,intervalsum$intervalmean,type="l",xlab="time intervals",ylab="average steps",main="average daily activity patterns")
 ```
@@ -68,6 +77,7 @@ countmissing<-countmissing[2]
 The number of missing values is `r countmissing`.
 
 ###3.2 Missing values will be replaced with the mean steps by interval
+
 ```{r replacing missing values,echo=TRUE}
 # replace NA values with steps mean by interval mean
 # first join tables to assign interval mean to every reading
@@ -79,15 +89,18 @@ dailysum2<-summarise(totalsteps2,dailysteps=sum(steps),dailymean=mean(steps),dai
 ```
 
 ###3.3 The histogram of the total steps taken each day, with missing data filled in:
+
 ```{r plot 3,echo=FALSE}
 hist(dailysum2$dailysteps,breaks=10,main="Total Steps Per Day Complete ",xlab="Total Steps Per Day",ylab="Frequency")
 ```
 
 ###3.4 How are the results (mean and median) different when missing values are imputed?
+
 ```{r new stats,echo=TRUE,results="hide"}
 meansteps2<-as.integer(mean(dailysum2$dailysteps,na.rm=TRUE))
 mediansteps2<-median(dailysum2$dailysteps,na.rm=TRUE)
 ```
+
 Clearly there is virtually no difference when replacing missing values with imputed values.  
 
 Old mean (missing values): `r meansteps`. New mean (imputed): `r meansteps2`.
@@ -112,7 +125,9 @@ intervalsum_wd<-summarise(dailyint2[subset_wd,],mean_day_wd=mean(steps))
 # merge files
 intervalsum4<-merge(intervalsum_we,intervalsum_wd,by.x="interval",by.y="interval",all=TRUE)
 ```
+
 The pattern of steps on weekends vs. weekdays shows significant differences:
+
 ```{r plot4,echo=FALSE,fig.height=8}
 par(mfrow=c(2,1),mar=c(4,8,4,8),lty=3)
 with(intervalsum4,{
