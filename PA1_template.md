@@ -16,34 +16,7 @@ unlink(temp)
 
 ```r
 library(data.table)
-```
-
-```
-## data.table 1.9.2  For help type: help("data.table")
-```
-
-```r
 library(dplyr)
-```
-
-```
-## 
-## Attaching package: 'dplyr'
-## 
-## The following objects are masked from 'package:data.table':
-## 
-##     between, last
-## 
-## The following object is masked from 'package:stats':
-## 
-##     filter
-## 
-## The following objects are masked from 'package:base':
-## 
-##     intersect, setdiff, setequal, union
-```
-
-```r
 library(knitr)
 ```
 
@@ -84,6 +57,11 @@ maxnum<-maxinterval[1,1]
 
 The time series showing the average steps by time interval:
 
+
+```r
+plot(intervalsum$interval,intervalsum$intervalmean,type="l",xlab="time intervals",ylab="average steps",main="average daily activity patterns")
+```
+
 ![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-1-1.png) 
 
 ###The interval with the maximum number of steps is 835.
@@ -117,6 +95,11 @@ dailysum2<-summarise(totalsteps2,dailysteps=sum(steps),dailymean=mean(steps),dai
 
 ###3.3 The histogram of the total steps taken each day, with missing data filled in:
 
+
+```r
+hist(dailysum2$dailysteps,breaks=10,main="Total Steps Per Day Complete ",xlab="Total Steps Per Day",ylab="Frequency")
+```
+
 ![plot of chunk plot 3](figure/plot 3-1.png) 
 
 ###3.4 How are the results (mean and median) different when missing values are imputed?
@@ -124,13 +107,13 @@ dailysum2<-summarise(totalsteps2,dailysteps=sum(steps),dailymean=mean(steps),dai
 
 ```r
 meansteps2<-as.integer(mean(dailysum2$dailysteps,na.rm=TRUE))
-mediansteps2<-median(dailysum2$dailysteps,na.rm=TRUE)
+mediansteps2<-as.integer(median(dailysum2$dailysteps,na.rm=TRUE))
 ```
 
 Clearly there is virtually no difference when replacing missing values with imputed values.  
 
 Old mean (missing values): 10766. New mean (imputed): 10766.
-Old median (missing values): 10765. New median (imputed): 1.0766189 &times; 10<sup>4</sup>.
+Old median (missing values): 10765. New median (imputed): 10766.
 
 ##Q4: Are there differences in activity patterns between weekdays and weekends?
 
@@ -154,5 +137,16 @@ intervalsum4<-merge(intervalsum_we,intervalsum_wd,by.x="interval",by.y="interval
 ```
 
 The pattern of steps on weekends vs. weekdays shows significant differences:
+
+
+```r
+par(mfrow=c(2,1),mar=c(4,8,4,8),lty=3)
+with(intervalsum4,{
+  plot(interval,mean_day_we,main="weekend",type="n",ylab="number of steps")
+  lines(interval,mean_day_we,type="l")
+  plot(interval,mean_day_wd,main="weekday",type="n",xlab="interval")
+  lines(interval,mean_day_wd,type="l")
+})
+```
 
 ![plot of chunk plot4](figure/plot4-1.png) 

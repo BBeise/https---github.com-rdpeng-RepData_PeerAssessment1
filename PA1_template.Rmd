@@ -57,7 +57,7 @@ maxnum<-maxinterval[1,1]
 
 The time series showing the average steps by time interval:
 
-```{r,echo=FALSE}
+```{r,echo=TRUE}
 plot(intervalsum$interval,intervalsum$intervalmean,type="l",xlab="time intervals",ylab="average steps",main="average daily activity patterns")
 ```
 
@@ -90,7 +90,7 @@ dailysum2<-summarise(totalsteps2,dailysteps=sum(steps),dailymean=mean(steps),dai
 
 ###3.3 The histogram of the total steps taken each day, with missing data filled in:
 
-```{r plot 3,echo=FALSE}
+```{r plot 3,echo=TRUE}
 hist(dailysum2$dailysteps,breaks=10,main="Total Steps Per Day Complete ",xlab="Total Steps Per Day",ylab="Frequency")
 ```
 
@@ -98,7 +98,7 @@ hist(dailysum2$dailysteps,breaks=10,main="Total Steps Per Day Complete ",xlab="T
 
 ```{r new stats,echo=TRUE,results="hide"}
 meansteps2<-as.integer(mean(dailysum2$dailysteps,na.rm=TRUE))
-mediansteps2<-median(dailysum2$dailysteps,na.rm=TRUE)
+mediansteps2<-as.integer(median(dailysum2$dailysteps,na.rm=TRUE))
 ```
 
 Clearly there is virtually no difference when replacing missing values with imputed values.  
@@ -108,7 +108,7 @@ Old median (missing values): `r mediansteps`. New median (imputed): `r medianste
 
 ##Q4: Are there differences in activity patterns between weekdays and weekends?
 
-```{r weekday diffs}
+```{r weekday diffs,echo=TRUE}
 # create weekend and weekday factors
 completeactivity$newdate<-as.Date(completeactivity$date)
 completeactivity$day<-weekdays(completeactivity$newdate)
@@ -128,7 +128,7 @@ intervalsum4<-merge(intervalsum_we,intervalsum_wd,by.x="interval",by.y="interval
 
 The pattern of steps on weekends vs. weekdays shows significant differences:
 
-```{r plot4,echo=FALSE,fig.height=8}
+```{r plot4,echo=TRUE,fig.height=8}
 par(mfrow=c(2,1),mar=c(4,8,4,8),lty=3)
 with(intervalsum4,{
   plot(interval,mean_day_we,main="weekend",type="n",ylab="number of steps")
